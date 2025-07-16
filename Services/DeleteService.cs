@@ -1,10 +1,13 @@
-﻿using System.Security.Cryptography;
+﻿using Spectre.Console;
+using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace ZeroTrace.Services;
 
 internal static class DeleteService
 {
-    public static event Action? FileOverwrited;
+    public static event Action<string>? FileOverwrited;
+    public static event Action<int>? PassCompleted;
     public static void Delete(string[] files, int passes = 7, int bufferSize = 4096)
     {
         foreach (string filePath in files)
@@ -12,7 +15,7 @@ internal static class DeleteService
             using var rng = RandomNumberGenerator.Create();
             if (!File.Exists(filePath))
             {
-                Console.WriteLine($"{filePath} not found!");
+                AnsiConsole.WriteLine($"{filePath} not found!");
                 continue;
             }
 
@@ -22,7 +25,6 @@ internal static class DeleteService
 
             for (int i = 0; i < passes; i++)
             {
-                Console.WriteLine($"{i + 1} of {passes}");
                 int method;
                 do
                 {
@@ -51,23 +53,24 @@ internal static class DeleteService
                 }
 
                 lastMethod = method;
+                Thread.Sleep(1000);
+                PassCompleted?.Invoke(i+1);
             }
-
             stream.Close();
 
-            Thread.Sleep(100);
             try
             {
                 File.Delete(filePath);
+                AnsiConsole.MarkupLine($"File [green bold]{filePath}[/] deleted.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
-                Console.WriteLine("File overwrited but could not be deleted...");
+                AnsiConsole.MarkupLine($"File [red bold]{filePath}[/] overwrited but could not be deleted.");
+                AnsiConsole.WriteLine(ex.Message);
             }
             finally
             {
-                FileOverwrited?.Invoke();
+                FileOverwrited?.Invoke(filePath);
             }
         }
     }

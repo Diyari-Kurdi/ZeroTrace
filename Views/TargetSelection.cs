@@ -3,7 +3,6 @@ using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
-using ZeroTrace.Services;
 
 namespace ZeroTrace.Views;
 
@@ -55,14 +54,41 @@ public static partial class TargetSelection
                         .AddChoice(false)
                         .DefaultValue(false)
                         .WithConverter(choice => choice ? "y" : "n"));
-
+                AnsiConsole.WriteLine();
                 if (confirmation)
                 {
                     AnsiConsole.Progress()
                         .Start(ctx =>
                         {
-                            var task1 = ctx.AddTask("[green]Securely deleting targets[/]", true, targets.Count);
+                            var passes = 7;
+                            var targetCount = targets.Count;
+                            var task1 = ctx.AddTask($"[green]Securely deleting {targetCount} targets[/]", true, targetCount);
+                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
+#if DEBUG
+                            AnsiConsole.MarkupLine("[yellow]Debug mode enabled. Simulating deletion...[/]");
+                            for (int i = 0; i < targetCount; i++)
+                            {
+                                task1.Value(i + 1);
+                                for (int j = 0; j < passes; j++)
+                                {
+                                    task2.Value(j + 1);
+                                    Thread.Sleep(250);
+                                }
+                                Thread.Sleep(350);
+                            }
+#else
 
+
+                            DeleteService.FileOverwrited += file =>
+                            {
+                                task1.Increment(1);
+                            };
+                            DeleteService.PassCompleted += (pass) =>
+                            {
+                                task2.Value(pass);
+                            };
+                            DeleteService.Delete([.. targets.Select(t=>t.Path)], passes);
+#endif
                         });
 
                     AnsiConsole.Prompt(
