@@ -3,10 +3,11 @@ using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
+using ZeroTrace.Services;
 
 namespace ZeroTrace.Views;
 
-public static partial class TargetSelection
+public static partial class FileSelection
 {
     public static void Show()
     {
@@ -19,7 +20,6 @@ public static partial class TargetSelection
 
             if (targets.Count == 0)
             {
-                AnsiConsole.MarkupLine("[red]No valid target specified. Exiting...[/]");
                 return;
             }
 
@@ -32,8 +32,15 @@ public static partial class TargetSelection
 
             foreach (var item in targets)
             {
-                var type = GetTypeName(item.Path);
-                table.AddRow(type, item.Path, item.Size);
+                var type = new Markup(GetTypeName(item.Path));
+                var path = new TextPath(item.Path)
+                    .LeafColor(Color.Yellow)
+                    .SeparatorColor(Color.Green)
+                    .RootColor(Color.Red)
+                    .StemColor(Color.Blue);
+                var size = new Text(item.Size);
+
+                table.AddRow(type, path, size);
             }
 
             AnsiConsole.Write(table);
@@ -64,20 +71,6 @@ public static partial class TargetSelection
                             var targetCount = targets.Count;
                             var task1 = ctx.AddTask($"[green]Securely deleting {targetCount} targets[/]", true, targetCount);
                             var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
-#if DEBUG
-                            AnsiConsole.MarkupLine("[yellow]Debug mode enabled. Simulating deletion...[/]");
-                            for (int i = 0; i < targetCount; i++)
-                            {
-                                task1.Value(i + 1);
-                                for (int j = 0; j < passes; j++)
-                                {
-                                    task2.Value(j + 1);
-                                    Thread.Sleep(250);
-                                }
-                                Thread.Sleep(350);
-                            }
-#else
-
 
                             DeleteService.FileOverwrited += file =>
                             {
@@ -88,7 +81,6 @@ public static partial class TargetSelection
                                 task2.Value(pass);
                             };
                             DeleteService.Delete([.. targets.Select(t=>t.Path)], passes);
-#endif
                         });
 
                     AnsiConsole.Prompt(
@@ -100,7 +92,6 @@ public static partial class TargetSelection
                 }
             }
             AnsiConsole.Clear();
-
         }
 
     }
@@ -120,7 +111,7 @@ public static partial class TargetSelection
             {
                 string label = string.IsNullOrWhiteSpace(d.VolumeLabel) ? "No Label" : d.VolumeLabel;
                 string size = ByteSizeConverter.ToHumanReadable(d.TotalSize);
-                return new UserChoise($":computer_disk: {d.Name} ({label} - {size})", new TargetItem(d.Name, TargetType.Drive, size));
+                return new UserChoise($":computer_disk: {d.Name} ({label} - {size})", new TargetItem(d.Name, TargetType.Directory, size));
             })
             .ToList();
 

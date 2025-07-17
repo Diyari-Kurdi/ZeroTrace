@@ -6,7 +6,6 @@ public static class About
 {
     public static void Show()
     {
-
         AnsiConsole.Write(
             new FigletText("ZeroTrace")
                 .Centered()

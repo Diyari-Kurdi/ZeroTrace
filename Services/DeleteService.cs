@@ -1,6 +1,5 @@
 ﻿using Spectre.Console;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
 
 namespace ZeroTrace.Services;
 
@@ -15,7 +14,12 @@ internal static class DeleteService
             using var rng = RandomNumberGenerator.Create();
             if (!File.Exists(filePath))
             {
-                AnsiConsole.WriteLine($"{filePath} not found!");
+                AnsiConsole.Write(new TextPath(filePath)
+                .LeafColor(Color.Yellow)
+                .SeparatorColor(Color.Green)
+                .RootColor(Color.Red)
+                .StemColor(Color.Blue));
+                AnsiConsole.WriteLine($" not found!");
                 continue;
             }
 
@@ -53,20 +57,31 @@ internal static class DeleteService
                 }
 
                 lastMethod = method;
-                Thread.Sleep(1000);
-                PassCompleted?.Invoke(i+1);
+                PassCompleted?.Invoke(i + 1);
             }
             stream.Close();
 
             try
             {
                 File.Delete(filePath);
-                AnsiConsole.MarkupLine($"File [green bold]{filePath}[/] deleted.");
+                AnsiConsole.Write($"File ");
+                AnsiConsole.Write(new TextPath(filePath)
+                    .LeafColor(Color.Yellow)
+                    .SeparatorColor(Color.Green)
+                    .RootColor(Color.Red)
+                    .StemColor(Color.Blue));
+                AnsiConsole.WriteLine($" deleted.");
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine($"File [red bold]{filePath}[/] overwrited but could not be deleted.");
-                AnsiConsole.WriteLine(ex.Message);
+                AnsiConsole.Write($"File ");
+                AnsiConsole.Write(new TextPath(filePath)
+                    .LeafColor(Color.Yellow)
+                    .SeparatorColor(Color.Green)
+                    .RootColor(Color.Red)
+                    .StemColor(Color.Blue));
+                AnsiConsole.WriteLine($" overwrited but could not be deleted.");
+                AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
             }
             finally
             {
@@ -75,6 +90,42 @@ internal static class DeleteService
         }
     }
 
+    public static void DeletePartition(string partitionPath, int passes = 7, int bufferSize = 4096 * 1024)
+    {
+        if (!Directory.Exists(partitionPath))
+        {
+            AnsiConsole.Write(new TextPath(partitionPath)
+                .LeafColor(Color.Yellow)
+                .SeparatorColor(Color.Green)
+                .RootColor(Color.Red)
+                .StemColor(Color.Blue));
+            AnsiConsole.WriteLine($" not found!");
+            return;
+        }
+        var files = Directory.GetFiles(partitionPath, "*", SearchOption.AllDirectories);
+        Delete(files, passes, bufferSize);
+
+        var path = Path.Combine(partitionPath, "zerotrace.tmp");
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write);
+        byte[] buffer = new byte[bufferSize];
+        RandomNumberGenerator.Fill(buffer);
+
+        while (true)
+        {
+            try
+            {
+                stream.Write(buffer, 0, buffer.Length);
+            }
+            catch (IOException)
+            {
+                break;
+            }
+        }
+        stream.Flush();
+        stream.Close();
+        Delete([path], passes, bufferSize);
+
+    }
 
     private static void Reverse(FileStream stream, int bufferSize)
     {
