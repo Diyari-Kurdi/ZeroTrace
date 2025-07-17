@@ -61,14 +61,24 @@ public static partial class PartitionSelection
                         .Start(ctx =>
                         {
                             var passes = 7;
-                            var task1 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
+                            DriveInfo driveInfo = new(target.Path);
+                            var task1 = ctx.AddTask($"[green]{ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize)} space to fill[/]", true, driveInfo.TotalSize);
+                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
 
-                            DeleteService.PassCompleted += (pass) =>
+                            PartitionDeleteService.ProgressChanged += () =>
                             {
-                                task1.Value(pass);
+                                task1.Value(driveInfo.TotalSize - driveInfo.TotalFreeSpace);
+                            };
+                            PartitionDeleteService.Completed += () =>
+                            {
+                                task1.Value(driveInfo.TotalSize);
+                            };
+                            FileDeleteService.PassCompleted += (pass) =>
+                            {
+                                task2.Value(pass);
                             };
 
-                            DeleteService.DeletePartition(target.Path, passes);
+                            PartitionDeleteService.DeletePartition(target.Path, passes);
                         });
 
                     AnsiConsole.Prompt(

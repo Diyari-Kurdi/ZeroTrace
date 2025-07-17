@@ -72,15 +72,15 @@ public static partial class FileSelection
                             var task1 = ctx.AddTask($"[green]Securely deleting {targetCount} targets[/]", true, targetCount);
                             var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
 
-                            DeleteService.FileOverwrited += file =>
+                            FileDeleteService.FileOverwrited += file =>
                             {
                                 task1.Increment(1);
                             };
-                            DeleteService.PassCompleted += (pass) =>
+                            FileDeleteService.PassCompleted += (pass) =>
                             {
                                 task2.Value(pass);
                             };
-                            DeleteService.Delete([.. targets.Select(t=>t.Path)], passes);
+                            FileDeleteService.Delete([.. targets.Select(t=>t.Path)], passes);
                         });
 
                     AnsiConsole.Prompt(
