@@ -65,11 +65,14 @@ public static partial class FileSelection
                 if (confirmation)
                 {
                     AnsiConsole.Progress()
+                        .AutoClear(true)
+                        .HideCompleted(true)
                         .Start(ctx =>
                         {
                             var passes = 7;
-                            var targetCount = targets.Count;
-                            var task1 = ctx.AddTask($"[green]Securely deleting {targetCount} targets[/]", true, targetCount);
+                            List<string> files = FileDeleteService.GetFiles(targets);
+
+                            var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
                             var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
 
                             FileDeleteService.FileOverwrited += file =>
@@ -80,7 +83,8 @@ public static partial class FileSelection
                             {
                                 task2.Value(pass);
                             };
-                            FileDeleteService.Delete([.. targets.Select(t=>t.Path)], passes);
+                            
+                            FileDeleteService.Delete(files.AsReadOnly(), passes);
                         });
 
                     AnsiConsole.Prompt(

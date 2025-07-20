@@ -1,10 +1,26 @@
 ﻿using System.Security.Cryptography;
+using ZeroTrace.Enums;
+using ZeroTrace.Model;
 
 namespace ZeroTrace.Services;
 
 public abstract class DeleteBase
 {
-    protected const int bufferSize = 64 * 1024 * 1024;
+    protected static int GetBufferSize(long fileLength = 0)
+    {
+        var defaultBufferSize = 64 * 1024 * 1024;
+
+        if (fileLength == 0)
+            return defaultBufferSize;
+
+        if (fileLength < 1 * 1024 * 1024)
+            return 64 * 1024;
+
+        if (fileLength < 10 * 1024 * 1024)
+            return 512 * 1024;
+
+        return defaultBufferSize;
+    }
     protected static void Reverse(FileStream stream)
     {
         int left = 0;
@@ -15,7 +31,7 @@ public abstract class DeleteBase
 
         while (left < right)
         {
-            int blockSize = (int)Math.Min(bufferSize, (right - left + 1) / 2);
+            int blockSize = (int)Math.Min(GetBufferSize(stream.Length), (right - left + 1) / 2);
 
             stream.Position = left;
             stream.ReadExactly(leftBuffer, 0, blockSize);
@@ -70,7 +86,8 @@ public abstract class DeleteBase
 
     protected static void ZeroFill(FileStream stream)
     {
-        byte[] buffer = new byte[bufferSize];
+        var bufferSize = GetBufferSize(stream.Length);
+        byte[] buffer = new byte[GetBufferSize(bufferSize)];
         long length = stream.Length;
         stream.Position = 0;
 
@@ -86,6 +103,7 @@ public abstract class DeleteBase
 
     protected static void Random(FileStream stream, RandomNumberGenerator rng)
     {
+        var bufferSize = GetBufferSize(stream.Length);
         byte[] buffer = new byte[bufferSize];
         long length = stream.Length;
         stream.Position = 0;
@@ -133,5 +151,22 @@ public abstract class DeleteBase
         } while (result >= (long.MaxValue - (long.MaxValue % range)));
 
         return min + (result % range);
+    }
+
+    public static List<string> GetFiles(List<TargetItem> targets)
+    {
+        List<string> filePaths = [];
+        foreach (var target in targets)
+        {
+            if (target.Type != TargetType.File)
+            {
+                filePaths.AddRange(Directory.EnumerateFiles(target.Path, "*", SearchOption.AllDirectories));
+            }
+            else
+            {
+                filePaths.Add(target.Path);
+            }
+        }
+        return filePaths;
     }
 }
