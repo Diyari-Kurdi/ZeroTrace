@@ -10,34 +10,38 @@ internal class FileDeleteService : DeleteBase
 
     public static void Delete(IReadOnlyList<string> filePaths, int passes = 7)
     {
-        foreach (var filePath in filePaths)
+        Parallel.ForEach(filePaths, filePath =>
         {
-            if (!File.Exists(filePath))
+            try
             {
-                AnsiConsole.Write(new TextPath(filePath)
-                    .LeafColor(Color.Yellow)
-                    .SeparatorColor(Color.Green)
-                    .RootColor(Color.Red)
-                    .StemColor(Color.Blue));
-                AnsiConsole.WriteLine($" not found!");
-                continue;
-            }
-            DeleteFile(filePath, passes);
+                if (!File.Exists(filePath))
+                {
+                    return;
+                }
 
-        }
+                DeleteFile(filePath, passes);
+            }
+            catch (Exception ex)
+            {
+                lock (AnsiConsole.Console)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error deleting {filePath}: {ex.Message}[/]");
+                }
+            }
+        });
     }
 
     private static void DeleteFile(string filePath, int passes)
     {
         using var rng = RandomNumberGenerator.Create();
 
-        var bufferSize = GetBufferSize(new FileInfo(filePath).Length);
-        var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, bufferSize, useAsync: true);
 
         int? lastMethod = null;
 
         for (int i = 0; i < passes; i++)
         {
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, GetBufferSize(new FileInfo(filePath).Length), FileOptions.SequentialScan);
+
             int method;
             do
             {
@@ -67,32 +71,17 @@ internal class FileDeleteService : DeleteBase
 
             lastMethod = method;
             PassCompleted?.Invoke(i + 1);
+            stream.Close();
+
         }
-        stream.Close();
 
         try
         {
             File.Delete(filePath);
-            var columns = new Columns(new TextPath(filePath)
-                .LeafColor(Color.Yellow)
-                .SeparatorColor(Color.Green)
-                .RootColor(Color.Red)
-                .StemColor(Color.Blue),
-                new Text(" deleted. \n"))
-                .Collapse();
-            AnsiConsole.Write(columns);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            var columns = new Columns(new TextPath(filePath)
-                .LeafColor(Color.Yellow)
-                .SeparatorColor(Color.Green)
-                .RootColor(Color.Red)
-                .StemColor(Color.Blue),
-                new Text(" overwrited but could not be deleted.\n"))
-                .Collapse();
-            AnsiConsole.Write(columns);
-            AnsiConsole.MarkupLine($"[red]{ex.Message}[/]");
+            
         }
         finally
         {

@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Spectre.Console;
+using System.Security.Cryptography;
 using ZeroTrace.Enums;
 using ZeroTrace.Model;
 
@@ -26,8 +27,9 @@ public abstract class DeleteBase
         int left = 0;
         long right = stream.Length - 1;
 
-        byte[] leftBuffer = new byte[stream.Length];
-        byte[] rightBuffer = new byte[stream.Length];
+        int bufferSize = GetBufferSize(stream.Length);
+        byte[] leftBuffer = new byte[bufferSize];
+        byte[] rightBuffer = new byte[bufferSize];
 
         while (left < right)
         {
@@ -87,7 +89,7 @@ public abstract class DeleteBase
     protected static void ZeroFill(FileStream stream)
     {
         var bufferSize = GetBufferSize(stream.Length);
-        byte[] buffer = new byte[GetBufferSize(bufferSize)];
+        byte[] buffer = new byte[bufferSize];
         long length = stream.Length;
         stream.Position = 0;
 
@@ -156,17 +158,50 @@ public abstract class DeleteBase
     public static List<string> GetFiles(List<TargetItem> targets)
     {
         List<string> filePaths = [];
+
         foreach (var target in targets)
         {
             if (target.Type != TargetType.File)
             {
-                filePaths.AddRange(Directory.EnumerateFiles(target.Path, "*", SearchOption.AllDirectories));
+                try
+                {
+                    filePaths.AddRange(GetSafeFiles(target.Path));
+                }
+                catch (Exception ex)
+                {
+                    AnsiConsole.MarkupLine($"[red]Error accessing {target.Path}: {ex.Message}[/]");
+                }
             }
             else
             {
                 filePaths.Add(target.Path);
             }
         }
+
         return filePaths;
+    }
+
+    private static List<string> GetSafeFiles(string path)
+    {
+        var files = new List<string>();
+        try
+        {
+            files.AddRange(Directory.GetFiles(path));
+            foreach (var dir in Directory.GetDirectories(path))
+            {
+                try
+                {
+                    files.AddRange(GetSafeFiles(dir));
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+
+        return files;
     }
 }

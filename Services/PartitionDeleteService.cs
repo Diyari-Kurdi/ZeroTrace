@@ -44,7 +44,6 @@ internal class PartitionDeleteService : DeleteBase
                 while (fileRemaining > 0)
                 {
                     int writeSize = (int)Math.Min(bufferSize, fileRemaining);
-                    RandomNumberGenerator.Fill(buffer.AsSpan(0, writeSize));
                     stream.Write(buffer, 0, writeSize);
 
                     fileRemaining -= writeSize;

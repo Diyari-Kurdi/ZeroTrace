@@ -65,8 +65,6 @@ public static partial class FileSelection
                 if (confirmation)
                 {
                     AnsiConsole.Progress()
-                        .AutoClear(true)
-                        .HideCompleted(true)
                         .Start(ctx =>
                         {
                             var passes = 7;
