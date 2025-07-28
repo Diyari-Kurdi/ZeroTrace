@@ -1,5 +1,4 @@
 ﻿using Spectre.Console;
-using System.Security.Cryptography;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
 
@@ -62,10 +61,7 @@ internal class PartitionDeleteService : DeleteBase
             }
         }
 
-        var files = FileDeleteService.GetFiles([new TargetItem(drive.Name, Enums.TargetType.Drive, ByteSizeConverter.ToHumanReadable(drive.TotalSize))]);
 
         Completed?.Invoke();
-
-        FileDeleteService.Delete(files, passes);
     }
 }

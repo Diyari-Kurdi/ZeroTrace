@@ -94,6 +94,7 @@ public static partial class FileSelection
                 }
             }
             AnsiConsole.Clear();
+            About.Show();
         }
 
     }
@@ -118,7 +119,7 @@ public static partial class FileSelection
             .ToList();
 
         choices.Add(new(":open_file_folder: Manually enter", null));
-        choices.Add(new(":cross_mark: Exit", null));
+        choices.Add(new(":back_arrow: Go Back", null));
 
 
         var selected = AnsiConsole.Prompt(
@@ -130,10 +131,10 @@ public static partial class FileSelection
         {
             var input = AnsiConsole.Ask<string>(
             "Drag & drop or manually enter file/folder paths (separated by [green];[/], space or newline):");
-
-            return ParsePathsToModel(input);
+            var model = ParsePathsToModel(input);
+            return model;
         }
-        else if (selected.DisplayText.StartsWith(":cross_mark:"))
+        else if (selected.DisplayText.StartsWith(":back_arrow:"))
         {
             return [];
         }

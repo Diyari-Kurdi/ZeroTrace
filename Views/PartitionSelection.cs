@@ -57,13 +57,13 @@ public static partial class PartitionSelection
                 AnsiConsole.WriteLine();
                 if (confirmation)
                 {
+                    DriveInfo driveInfo = new(target.Path);
                     AnsiConsole.Progress()
                         .Start(ctx =>
                         {
                             var passes = 7;
-                            DriveInfo driveInfo = new(target.Path);
+                            
                             var task1 = ctx.AddTask($"[green]{ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize)} space to fill[/]", true, driveInfo.TotalSize);
-                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
 
                             PartitionDeleteService.ProgressChanged += () =>
                             {
@@ -73,13 +73,31 @@ public static partial class PartitionSelection
                             {
                                 task1.Value(driveInfo.TotalSize);
                             };
+
+                            PartitionDeleteService.DeletePartition(target.Path, passes);
+                        });
+
+                    AnsiConsole.Progress()
+                        .Start(ctx =>
+                        {
+                            var files = FileDeleteService.GetFiles([new TargetItem(driveInfo.Name, Enums.TargetType.Drive, ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize))]);
+                            var passes = 7;
+
+                            var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
+                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
+
+                            FileDeleteService.FileOverwrited += file =>
+                            {
+                                task1.Increment(1);
+                            };
                             FileDeleteService.PassCompleted += (pass) =>
                             {
                                 task2.Value(pass);
                             };
 
-                            PartitionDeleteService.DeletePartition(target.Path, passes);
+                            FileDeleteService.Delete(files.AsReadOnly(), passes);
                         });
+
 
                     AnsiConsole.Prompt(
                         new TextPrompt<string>("[bold green]Deletation completed![/] Press Enter... ")
@@ -90,6 +108,7 @@ public static partial class PartitionSelection
                 }
             }
             AnsiConsole.Clear();
+            About.Show();
         }
 
     }
@@ -113,7 +132,7 @@ public static partial class PartitionSelection
             })
             .ToList();
 
-        choices.Add(new(":cross_mark: Exit", null));
+        choices.Add(new(":back_arrow: Go Back", null));
 
 
         var selected = AnsiConsole.Prompt(
@@ -121,7 +140,7 @@ public static partial class PartitionSelection
                 .Title("[bold red]Choose target to securely delete:[/]")
                 .AddChoices(choices).UseConverter(p => p.DisplayText));
 
-        if (selected.DisplayText.StartsWith(":cross_mark:"))
+        if (selected.DisplayText.StartsWith(":back_arrow:"))
         {
             return null;
         }
