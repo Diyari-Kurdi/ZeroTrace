@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using System.Runtime.InteropServices;
+using Spectre.Console;
 using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
@@ -102,12 +103,32 @@ public static partial class FileSelection
     private static List<TargetItem> AskForTarget()
     {
         var systemRoot = Path.GetPathRoot(Environment.SystemDirectory);
-
-        var drives = DriveInfo.GetDrives()
-            .Where(d => d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed
+        var allDrives = DriveInfo.GetDrives();
+        IEnumerable<DriveInfo> drives;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            drives = allDrives.Where(d => 
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed)
                 && d.IsReady
-                && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+                && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase));
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            drives = allDrives.Where(d =>
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed ||
+                 d.DriveType == DriveType.Unknown)
+                && d.IsReady
+                && d.Name.StartsWith("/Volumes/"));
+        }
+        else
+        {
+            drives = allDrives.Where(d =>
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed ||
+                 d.DriveType == DriveType.Unknown)
+                && d.IsReady
+                && d.Name.StartsWith("/media/") || d.Name.StartsWith("/mnt/"));
+        }
+        drives = [.. drives];
 
         var choices = drives
             .Select(d =>
@@ -118,6 +139,7 @@ public static partial class FileSelection
             })
             .ToList();
 
+        var names = drives.Select(drive=>drive.Name).ToList();
         choices.Add(new(":open_file_folder: Manually enter", null));
         choices.Add(new(":back_arrow: Go Back", null));
 
@@ -139,7 +161,7 @@ public static partial class FileSelection
             return [];
         }
 
-        return [selected.Item];
+        return [selected.Item!];
     }
 
     private static List<TargetItem> ParsePathsToModel(string input)
@@ -149,12 +171,22 @@ public static partial class FileSelection
 
         var matches = PathRegex().Matches(input);
         var paths = matches
-            .Select(m => m.Groups[1].Success ? m.Groups[1].Value : m.Groups[2].Value)
+            .Select(m =>
+                m.Groups[1].Success ? m.Groups[1].Value :
+                m.Groups[2].Success ? m.Groups[2].Value :
+                m.Groups[3].Value
+            )
+            .Select(UnescapePath)
             .Distinct()
             .Where(p => Path.Exists(p))
             .ToList();
 
         return [.. paths.Select(BuildTargetItem)];
+    }
+
+    private static string UnescapePath(string path)
+    {
+        return Regex.Unescape(path.Replace("\\ ", " "));
     }
 
     private static TargetItem BuildTargetItem(string path)
@@ -204,6 +236,6 @@ public static partial class FileSelection
         return "[grey]Unknown[/]";
     }
 
-    [GeneratedRegex("\"([^\"]+)\"|([^\\s;]+)")]
+    [GeneratedRegex("\"([^\"]+)\"|'([^']+)'|([^\\s;]+)")]
     private static partial Regex PathRegex();
 }

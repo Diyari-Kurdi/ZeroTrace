@@ -16,9 +16,9 @@
 
   <ItemGroup>
     <Content Include="shred.ico" />
-    <Content Include="shred16.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="shred16.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

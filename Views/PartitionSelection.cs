@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using System.Runtime.InteropServices;
+using Spectre.Console;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
@@ -116,12 +117,33 @@ public static partial class PartitionSelection
     private static TargetItem? AskForTarget()
     {
         var systemRoot = Path.GetPathRoot(Environment.SystemDirectory);
-
-        var drives = DriveInfo.GetDrives()
-            .Where(d => d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed
+        var allDrives = DriveInfo.GetDrives();
+        IEnumerable<DriveInfo> drives;
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            drives = allDrives.Where(d => 
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed)
                 && d.IsReady
-                && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase))
-            .ToList();
+                && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase));
+           
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            drives = allDrives.Where(d =>
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed ||
+                 d.DriveType == DriveType.Unknown)
+                && d.IsReady
+                && d.Name.StartsWith("/Volumes/"));
+        }
+        else
+        {
+            drives = allDrives.Where(d =>
+                (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed ||
+                 d.DriveType == DriveType.Unknown)
+                && d.IsReady
+                && d.Name.StartsWith("/media/") || d.Name.StartsWith("/mnt/"));
+        }
+        drives = [.. drives];
 
         var choices = drives
             .Select(d =>

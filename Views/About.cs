@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Reflection;
 
 namespace ZeroTrace.Views;
 
@@ -29,14 +30,24 @@ public static class About
         table.AddRow("[yellow]Version[/]", "v1.0.0");
         table.AddRow("[yellow]License[/]", "MIT");
 
-        var image = new CanvasImage("shred16.png");
-        image.NoMaxWidth();
-
-
         var mainGrid = new Grid();
         mainGrid.AddColumn();
         mainGrid.AddColumn();
-        mainGrid.AddRow(image, new Rows(panel.Expand(), table.Expand()));
+
+        var assembly = Assembly.GetExecutingAssembly();
+        const string resourceName = "ZeroTrace.shred16.png";
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream != null)
+        {
+            var image = new CanvasImage(stream);
+            image.NoMaxWidth();
+            mainGrid.AddRow(image, new Rows(panel.Expand(), table.Expand()));
+        }
+        else
+        {
+            mainGrid.AddRow(new Rows(panel.Expand(), table.Expand()));
+        }
 
         AnsiConsole.Write(mainGrid);
 
