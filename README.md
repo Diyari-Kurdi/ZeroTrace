@@ -47,7 +47,21 @@ ZeroTrace is built with .NET 9 and supports AOT compilation for fast startup and
 
 ### 📦 Download Prebuilt Releases
 
-Visit the [GitHub Releases page](https://github.com/Diyari-Kurdi/ZeroTrace/releases) and download the latest release for your platform. Extract the archive and run the executable.
+Visit the [GitHub Releases page](https://github.com/Diyari-Kurdi/ZeroTrace/releases) and download the latest release for your platform.
+
+- 🪟 **Windows**: Download the `.exe` file and double-click to run.
+- 🐧 **Linux**: Download the binary, then run:
+
+```bash
+./ZeroTrace-linux-x64
+````
+
+> 💡 If you're on Linux and see a “Permission denied” error, run:
+>
+> ```bash
+> chmod +x ZeroTrace-linux-x64
+> ./ZeroTrace-linux-x64
+> ```
 
 ### 🔧 Build from Source
 
@@ -74,6 +88,8 @@ dotnet run --project ZeroTrace
 2. **Add Targets:** Select or enter paths for files, folders, or partitions.
 3. **Confirm Deletion:** Review selected targets and confirm the operation.
 4. **Monitor Progress:** Monitor the progress as ZeroTrace securely erases your data.
+
+
 
 ### 📸 Screenshot
 
