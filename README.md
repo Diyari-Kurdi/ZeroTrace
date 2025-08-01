@@ -93,7 +93,7 @@ dotnet run --project ZeroTrace
 
 ### 📸 Screenshot
 
-<img width="1303" height="932" alt="image" src="https://github.com/user-attachments/assets/40da2057-c1fa-4493-a4c7-8556f310952e" />
+<img width="1501" height="913" alt="image" src="https://github.com/user-attachments/assets/a1169d0a-0ded-40de-8bc2-951f63555ebf" />
 
 ---
 
@@ -105,8 +105,21 @@ https://github.com/user-attachments/assets/b1d4bb9d-4a7f-4aea-8f26-b788d3281cef
 
 ---
 
-
-
 ## 📃 License
 
 ZeroTrace is licensed under the [MIT License](https://github.com/Diyari-Kurdi/ZeroTrace?tab=MIT-1-ov-file).
+
+---
+
+
+## 💖 Support This Project
+
+If you find **ZeroTrace** useful and want to support continued development, consider donating:
+
+| Cryptocurrency | Address                                                                                      | QR Code                                  |
+|----------------|----------------------------------------------------------------------------------------------|------------------------------------------|
+| Bitcoin (BTC)  | `1A1pm2DNMFtsBHzKea64HCogLKMpScagZu`                                                       | ![BTC QR](https://github.com/user-attachments/assets/a4bb3518-3aeb-4d66-84c4-f387ecbaba40)           |
+| Monero (XMR)   | `897p7tTp8BRGUY92XYvUcCABmWfMpSQqa2APFK28wwHsC6b3RaUVPQ1EYyJ66jqLhxWdBLe9FvcHoAEn7K2PYhrAS7SJKGw` | ![XMR QR](https://github.com/user-attachments/assets/ab7ffec8-ac46-4ffd-8cdc-8cd72621974f)           |
+
+Thank you for your support! ❤️
+
