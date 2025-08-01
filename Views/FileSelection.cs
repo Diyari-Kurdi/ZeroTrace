@@ -176,17 +176,11 @@ public static partial class FileSelection
                 m.Groups[2].Success ? m.Groups[2].Value :
                 m.Groups[3].Value
             )
-            .Select(UnescapePath)
             .Distinct()
-            .Where(p => Path.Exists(p))
+            .Where(Path.Exists)
             .ToList();
 
         return [.. paths.Select(BuildTargetItem)];
-    }
-
-    private static string UnescapePath(string path)
-    {
-        return Regex.Unescape(path.Replace("\\ ", " "));
     }
 
     private static TargetItem BuildTargetItem(string path)
