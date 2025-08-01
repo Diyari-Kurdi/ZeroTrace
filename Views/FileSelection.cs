@@ -1,5 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using Spectre.Console;
+﻿using Spectre.Console;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
@@ -16,7 +16,8 @@ public static partial class FileSelection
         while (true)
         {
             var newTargets = AskForTarget().Where(nt => !targets.Any(t => t.Path == nt.Path));
-
+            AnsiConsole.Clear();
+            About.Show();
             targets.AddRange(newTargets);
 
             if (targets.Count == 0)
@@ -24,27 +25,8 @@ public static partial class FileSelection
                 return;
             }
 
-            var table = new Table()
-                .Border(TableBorder.Rounded)
-                .Title("[green]Selected Targets[/]")
-                .AddColumn("Type")
-                .AddColumn("Path")
-                .AddColumn("Size");
+            ShowSelectedTargets(targets);
 
-            foreach (var item in targets)
-            {
-                var type = new Markup(GetTypeName(item.Path));
-                var path = new TextPath(item.Path)
-                    .LeafColor(Color.Yellow)
-                    .SeparatorColor(Color.Green)
-                    .RootColor(Color.Red)
-                    .StemColor(Color.Blue);
-                var size = new Text(item.Size);
-
-                table.AddRow(type, path, size);
-            }
-
-            AnsiConsole.Write(table);
             var result = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                 .AddChoices("Add more", "Clear All", "Continue"));
@@ -53,6 +35,8 @@ public static partial class FileSelection
             if (result.StartsWith("Clear"))
             {
                 targets.Clear();
+                AnsiConsole.Clear();
+                About.Show();
             }
             else if (result.StartsWith("Continue"))
             {
@@ -82,7 +66,7 @@ public static partial class FileSelection
                             {
                                 task2.Value(pass);
                             };
-                            
+
                             FileDeleteService.Delete(files.AsReadOnly(), passes);
                         });
 
@@ -92,14 +76,45 @@ public static partial class FileSelection
                         .HideDefaultValue());
 
                     targets.Clear();
+                    AnsiConsole.Clear();
+                    About.Show();
                 }
+                else
+                {
+                    AnsiConsole.Clear();
+                    About.Show();
+                    ShowSelectedTargets(targets);
+                }
+
             }
-            AnsiConsole.Clear();
-            About.Show();
         }
 
     }
 
+    private static void ShowSelectedTargets(List<TargetItem> targets)
+    {
+        var table = new Table()
+                .Border(TableBorder.Rounded)
+                .Title("[green]Selected Targets[/]")
+                .AddColumn("Type")
+                .AddColumn("Path")
+                .AddColumn("Size");
+
+        foreach (var item in targets)
+        {
+            var type = new Markup(GetTypeName(item.Path));
+            var path = new TextPath(item.Path)
+                .LeafColor(Color.Yellow)
+                .SeparatorColor(Color.Green)
+                .RootColor(Color.Red)
+                .StemColor(Color.Blue);
+            var size = new Text(item.Size);
+
+            table.AddRow(type, path, size);
+        }
+
+        AnsiConsole.Write(table);
+    }
     private static List<TargetItem> AskForTarget()
     {
         var systemRoot = Path.GetPathRoot(Environment.SystemDirectory);
@@ -107,7 +122,7 @@ public static partial class FileSelection
         IEnumerable<DriveInfo> drives;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            drives = allDrives.Where(d => 
+            drives = allDrives.Where(d =>
                 (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed)
                 && d.IsReady
                 && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase));
@@ -139,7 +154,7 @@ public static partial class FileSelection
             })
             .ToList();
 
-        var names = drives.Select(drive=>drive.Name).ToList();
+        var names = drives.Select(drive => drive.Name).ToList();
         choices.Add(new(":open_file_folder: Manually enter", null));
         choices.Add(new(":back_arrow: Go Back", null));
 

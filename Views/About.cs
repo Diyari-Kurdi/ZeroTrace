@@ -29,7 +29,7 @@ public static class About
         table.AddRow("[yellow]GitHub[/]", "[link=https://github.com/Diyari-Kurdi/ZeroTrace]https://github.com/Diyari-Kurdi/ZeroTrace[/]");
         table.AddRow("[yellow]Version[/]", "v1.0.0");
         table.AddRow("[yellow]License[/]", "MIT");
-
+        
         var mainGrid = new Grid();
         mainGrid.AddColumn();
         mainGrid.AddColumn();
@@ -50,6 +50,18 @@ public static class About
         }
 
         AnsiConsole.Write(mainGrid);
+
+        var donatePanel = new Panel(new Markup(
+            "\n:red_heart:  [bold yellow]Support this project[/]\n" +
+            "[grey]BTC:[/] 1A1pm2DNMFtsBHzKea64HCogLKMpScagZu\n" +
+            "[grey]XMR:[/] 897p7tTp8BRGUY92XYvUcCABmWfMpSQqa2APFK28wwHsC6b3RaUVPQ1EYyJ66jqLhxWdBLe9FvcHoAEn7K2PYhrAS7SJKGw"
+        ))
+        {
+            Border = BoxBorder.None,
+            Padding = new Padding(1, 0),
+        };
+
+        AnsiConsole.Write(donatePanel);
 
         AnsiConsole.WriteLine();
     }
