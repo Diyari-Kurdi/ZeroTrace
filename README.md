@@ -53,15 +53,9 @@ Visit the [GitHub Releases page](https://github.com/Diyari-Kurdi/ZeroTrace/relea
 - 🐧 **Linux**: Download the binary, then run:
 
 ```bash
+chmod +x ZeroTrace-linux-x64
 ./ZeroTrace-linux-x64
 ````
-
-> 💡 If you're on Linux and see a “Permission denied” error, run:
->
-> ```bash
-> chmod +x ZeroTrace-linux-x64
-> ./ZeroTrace-linux-x64
-> ```
 
 ### 🔧 Build from Source
 
