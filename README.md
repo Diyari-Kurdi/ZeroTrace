@@ -116,7 +116,7 @@ ZeroTrace is licensed under the [MIT License](https://github.com/Diyari-Kurdi/Ze
 
 If you find **ZeroTrace** useful and want to support continued development, consider donating:
 
-| Cryptocurrency | Address                                                                                      | QR Code                                  |
+| Coin | Address                                                                                      | QR Code                                  |
 |----------------|----------------------------------------------------------------------------------------------|------------------------------------------|
 | Bitcoin | `1A1pm2DNMFtsBHzKea64HCogLKMpScagZu`                                                       | ![BTC QR](https://github.com/user-attachments/assets/a4bb3518-3aeb-4d66-84c4-f387ecbaba40)           |
 | Monero | `897p7tTp8BRGUY92XYvUcCABmWfMpSQqa2APFK28wwHsC6b3RaUVPQ1EYyJ66jqLhxWdBLe9FvcHoAEn7K2PYhrAS7SJKGw` | ![XMR QR](https://github.com/user-attachments/assets/ab7ffec8-ac46-4ffd-8cdc-8cd72621974f)           |
