@@ -1,8 +1,9 @@
 # 📛 ZeroTrace
 
 **ZeroTrace** is a cross-platform, Ahead-of-Time (AOT) compiled secure file deletion tool for Windows, Linux, and macOS. It safely overwrites and deletes files, folders, and partitions using multiple custom patterns to help prevent data recovery.
+
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/1b22bb7c-5120-4997-a306-2f07da9ca02e" alt="ZeroTrace Banner" />
+  <img width="1024" height="1024" alt="ZeroTrace Banner" src="https://github.com/user-attachments/assets/fc92e997-9e12-4640-bbf2-35a2cd918554" />
 </p>
 
 ## 📄 About
