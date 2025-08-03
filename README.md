@@ -25,8 +25,7 @@ ZeroTrace is built with .NET 9 and supports AOT compilation for fast startup and
 - **Multiple Overwrite Passes:** Overwrites data using multiple passes with different secure patterns.
 - **Custom Patterns:** Includes zero fill, random data, reverse, and byte shaking methods.
 - **Partition Wiping:** Fills free space on partitions to remove traces of deleted files.
-- **Progress Reporting:** Visual progress bars for deletion tasks.
-- **Cross-Platform:** Runs on Windows, Linux, and macOS (.NET 9).
+- **Cross-Platform:** Runs on Windows, Linux, and macOS*.
 - **Ahead-of-Time (AOT) Compilation:** Fast startup and minimal runtime dependencies.
 - **Open Source:** Licensed under MIT.
 
