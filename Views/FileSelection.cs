@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
-using ZeroTrace.Services;
 
 namespace ZeroTrace.Views;
 
@@ -40,6 +39,10 @@ public static partial class FileSelection
             }
             else if (result.StartsWith("Continue"))
             {
+                var passes = AnsiConsole.Prompt(
+                     new TextPrompt<int>("\n[green]Enter number of overwrite passes (More = Slower & Safer):[/]")
+                         .DefaultValue(7)
+                         .Validate(p => p > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Passes must be greater than 0[/]")));
                 var confirmation = AnsiConsole.Prompt(
                     new TextPrompt<bool>("[bold red]Are you sure you want to securely delete the selected targets?[/]")
                         .AddChoice(true)
@@ -52,8 +55,7 @@ public static partial class FileSelection
                     AnsiConsole.Progress()
                         .Start(ctx =>
                         {
-                            var passes = 7;
-                            List<string> files = FileDeleteService.GetFiles(targets);
+                            List<string> files = FileTargetHelper.GetFiles(targets);
 
                             var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
                             var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);

@@ -1,9 +1,8 @@
-﻿using System.Runtime.InteropServices;
-using Spectre.Console;
+﻿using Spectre.Console;
+using System.Runtime.InteropServices;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
-using ZeroTrace.Services;
 
 namespace ZeroTrace.Views;
 
@@ -49,6 +48,12 @@ public static partial class PartitionSelection
             }
             else if (result.StartsWith("Continue"))
             {
+
+                var passes = AnsiConsole.Prompt(
+                     new TextPrompt<int>("\n[green]Enter number of overwrite passes (More = Slower & Safer):[/]")
+                         .DefaultValue(7)
+                         .Validate(p => p > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Passes must be greater than 0[/]")));
+
                 var confirmation = AnsiConsole.Prompt(
                     new TextPrompt<bool>("[bold red]Are you sure you want to securely delete the selected target?[/]")
                         .AddChoice(true)
@@ -59,11 +64,10 @@ public static partial class PartitionSelection
                 if (confirmation)
                 {
                     DriveInfo driveInfo = new(target.Path);
+                    Exception? partitionException = null;
                     AnsiConsole.Progress()
                         .Start(ctx =>
                         {
-                            var passes = 7;
-                            
                             var task1 = ctx.AddTask($"[green]{ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize)} space to fill[/]", true, driveInfo.TotalSize);
 
                             PartitionDeleteService.ProgressChanged += () =>
@@ -75,43 +79,84 @@ public static partial class PartitionSelection
                                 task1.Value(driveInfo.TotalSize);
                             };
 
-                            PartitionDeleteService.DeletePartition(target.Path, passes);
+                            try
+                            {
+                                PartitionDeleteService.FillPartitionWithTempData(target.Path);
+                            }
+                            catch (Exception ex)
+                            {
+                                partitionException = ex;
+                                return;
+                            }
                         });
+
+                    if (partitionException is not null)
+                    {
+                        AnsiConsole.Prompt(
+                            new TextPrompt<string>($"[red]An error occurred while filling the partition: {partitionException.Message}[/]\n[red bold]Press Enter...[/]")
+                            .DefaultValue(string.Empty)
+                            .HideDefaultValue());
+                        CleanUp();
+                        continue;
+                    }
+
+                    Exception? fileException = null;
 
                     AnsiConsole.Progress()
-                        .Start(ctx =>
-                        {
-                            var files = FileDeleteService.GetFiles([new TargetItem(driveInfo.Name, Enums.TargetType.Drive, ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize))]);
-                            var passes = 7;
+                       .Start(ctx =>
+                       {
+                           var files = FileTargetHelper.GetFiles([new TargetItem(driveInfo.Name, TargetType.Drive, ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize))]);
 
-                            var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
-                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
+                           var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
+                           var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
 
-                            FileDeleteService.FileOverwrited += file =>
-                            {
-                                task1.Increment(1);
-                            };
-                            FileDeleteService.PassCompleted += (pass) =>
-                            {
-                                task2.Value(pass);
-                            };
+                           FileDeleteService.FileOverwrited += file =>
+                           {
+                               task1.Increment(1);
+                           };
+                           FileDeleteService.PassCompleted += (pass) =>
+                           {
+                               task2.Value(pass);
+                           };
+                           try
+                           {
+                               FileDeleteService.Delete(files.AsReadOnly(), passes);
+                               FileTargetHelper.CleanUpDirectories(driveInfo.RootDirectory.Name);
+                           }
+                           catch (Exception ex)
+                           {
+                               fileException = ex;
+                               return;
+                           }
+                       });
 
-                            FileDeleteService.Delete(files.AsReadOnly(), passes);
-                        });
-
+                    if (fileException is not null)
+                    {
+                        AnsiConsole.Prompt(
+                            new TextPrompt<string>($"[red]An error occurred: {fileException.Message}[/]\n[red bold]Press Enter...[/]")
+                            .DefaultValue(string.Empty)
+                            .HideDefaultValue());
+                        CleanUp();
+                        continue;
+                    }
 
                     AnsiConsole.Prompt(
-                        new TextPrompt<string>("[bold green]Deletation completed![/] Press Enter... ")
-                        .DefaultValue(string.Empty)
-                        .HideDefaultValue());
-
+                    new TextPrompt<string>("[bold green]Deletation completed![/] Press Enter... ")
+                    .DefaultValue(string.Empty)
+                    .HideDefaultValue());
                     target = null;
+
                 }
             }
-            AnsiConsole.Clear();
-            About.Show();
+            CleanUp();
         }
 
+    }
+
+    private static void CleanUp()
+    {
+        AnsiConsole.Clear();
+        About.Show();
     }
 
     private static TargetItem? AskForTarget()
@@ -121,11 +166,11 @@ public static partial class PartitionSelection
         IEnumerable<DriveInfo> drives;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            drives = allDrives.Where(d => 
+            drives = allDrives.Where(d =>
                 (d.DriveType == DriveType.Removable || d.DriveType == DriveType.Fixed)
                 && d.IsReady
                 && !d.Name.Equals(systemRoot, StringComparison.OrdinalIgnoreCase));
-           
+
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {

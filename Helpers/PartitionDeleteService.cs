@@ -1,14 +1,13 @@
 ﻿using Spectre.Console;
-using ZeroTrace.Helpers;
 using ZeroTrace.Model;
 
-namespace ZeroTrace.Services;
+namespace ZeroTrace.Helpers;
 
-internal class PartitionDeleteService : DeleteBase
+internal static class PartitionDeleteService
 {
     public static event Action? ProgressChanged;
     public static event Action? Completed;
-    public static void DeletePartition(string partitionPath, int passes = 7)
+    public static void FillPartitionWithTempData(string partitionPath)
     {
         if (!Directory.Exists(partitionPath))
         {
@@ -22,13 +21,12 @@ internal class PartitionDeleteService : DeleteBase
         }
         const int maxFileSize = 100 * 1024 * 1024;
 
-        var bufferSize = GetBufferSize();
+        var bufferSize = FileWipeUtilities.GetBufferSize();
         byte[] buffer = new byte[bufferSize];
         DriveInfo drive = new(partitionPath);
         long freeSpace = drive.TotalFreeSpace;
         int fileIndex = 0;
         var tempFiles = new List<TargetItem>();
-
         while (freeSpace > 0)
         {
             var fileName = $"{Guid.NewGuid()}.tmp";
