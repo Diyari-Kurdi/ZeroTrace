@@ -1,9 +1,9 @@
 ﻿using Spectre.Console;
 using System.Security.Cryptography;
 
-namespace ZeroTrace.Services;
+namespace ZeroTrace.Helpers;
 
-internal class FileDeleteService : DeleteBase
+internal static class FileDeleteService
 {
     public static event Action<string>? FileOverwrited;
     public static event Action<int>? PassCompleted;
@@ -40,32 +40,32 @@ internal class FileDeleteService : DeleteBase
 
         for (int i = 0; i < passes; i++)
         {
-            var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, GetBufferSize(new FileInfo(filePath).Length), FileOptions.SequentialScan);
+            var stream = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, FileWipeUtilities.GetBufferSize(new FileInfo(filePath).Length), FileOptions.SequentialScan);
 
             int method;
             do
             {
-                method = GetRandomInt(rng, 0, 5);
+                method = FileWipeUtilities.GetRandomInt(rng, 0, 5);
             }
-            while ((lastMethod == 0 && method == 0) ||
-                     (lastMethod == 2 && method == 2));
+            while (lastMethod == 0 && method == 0 ||
+                     lastMethod == 2 && method == 2);
 
             switch (method)
             {
                 case 0:
-                    Reverse(stream);
+                    SecureWipeOperations.Reverse(stream);
                     break;
                 case 1:
-                    Shake(stream, rng);
+                    SecureWipeOperations.Shake(stream, rng);
                     break;
                 case 2:
-                    ZeroFill(stream);
+                    SecureWipeOperations.ZeroFill(stream);
                     break;
                 case 3:
-                    Random(stream, rng);
+                    SecureWipeOperations.Random(stream, rng);
                     break;
                 default:
-                    Random(stream, rng);
+                    SecureWipeOperations.Random(stream, rng);
                     break;
             }
 
@@ -81,7 +81,7 @@ internal class FileDeleteService : DeleteBase
         }
         catch (Exception)
         {
-            
+
         }
         finally
         {

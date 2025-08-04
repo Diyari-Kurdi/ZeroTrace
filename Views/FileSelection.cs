@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using ZeroTrace.Enums;
 using ZeroTrace.Helpers;
 using ZeroTrace.Model;
-using ZeroTrace.Services;
 
 namespace ZeroTrace.Views;
 
@@ -53,7 +52,7 @@ public static partial class FileSelection
                         .Start(ctx =>
                         {
                             var passes = 7;
-                            List<string> files = FileDeleteService.GetFiles(targets);
+                            List<string> files = FileTargetHelper.GetFiles(targets);
 
                             var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
                             var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
