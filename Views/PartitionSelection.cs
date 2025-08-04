@@ -48,6 +48,12 @@ public static partial class PartitionSelection
             }
             else if (result.StartsWith("Continue"))
             {
+
+                var passes = AnsiConsole.Prompt(
+                     new TextPrompt<int>("[green]Enter number of overwrite passes (More = Slower & Safer) [7]:[/]")
+                         .DefaultValue(7)
+                         .Validate(p => p > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Passes must be greater than 0[/]")));
+
                 var confirmation = AnsiConsole.Prompt(
                     new TextPrompt<bool>("[bold red]Are you sure you want to securely delete the selected target?[/]")
                         .AddChoice(true)
@@ -100,7 +106,6 @@ public static partial class PartitionSelection
                        .Start(ctx =>
                        {
                            var files = FileTargetHelper.GetFiles([new TargetItem(driveInfo.Name, TargetType.Drive, ByteSizeConverter.ToHumanReadable(driveInfo.TotalSize))]);
-                           var passes = 7;
 
                            var task1 = ctx.AddTask($"[green]Target files[/]", true, files.Count);
                            var task2 = ctx.AddTask($"[green]{passes} passes to complete[/]", true, passes);
