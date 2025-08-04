@@ -27,9 +27,11 @@ public static class About
         table.HideHeaders();
         table.AddRow("[yellow]Author[/]", "Diyari Ismael");
         table.AddRow("[yellow]GitHub[/]", "[link=https://github.com/Diyari-Kurdi/ZeroTrace]https://github.com/Diyari-Kurdi/ZeroTrace[/]");
-        table.AddRow("[yellow]Version[/]", "v1.0.0");
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        string versionString = version != null ? $"{version.Major}.{version.Minor}.{version.Build}" : "Unknown";
+        table.AddRow("[yellow]Version[/]", $"v{versionString}");
         table.AddRow("[yellow]License[/]", "MIT");
-        
+
         var mainGrid = new Grid();
         mainGrid.AddColumn();
         mainGrid.AddColumn();

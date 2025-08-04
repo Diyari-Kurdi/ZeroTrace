@@ -40,7 +40,7 @@ public static partial class FileSelection
             else if (result.StartsWith("Continue"))
             {
                 var passes = AnsiConsole.Prompt(
-                     new TextPrompt<int>("[green]Enter number of overwrite passes (More = Slower & Safer) [7]:[/]")
+                     new TextPrompt<int>("\n[green]Enter number of overwrite passes (More = Slower & Safer):[/]")
                          .DefaultValue(7)
                          .Validate(p => p > 0 ? ValidationResult.Success() : ValidationResult.Error("[red]Passes must be greater than 0[/]")));
                 var confirmation = AnsiConsole.Prompt(
