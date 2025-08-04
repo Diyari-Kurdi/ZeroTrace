@@ -22,6 +22,7 @@ ZeroTrace is built with .NET 9 and supports AOT compilation for fast startup and
 
 ## ✨ Features
 
+- **User-Defined Overwrite Passes:** Choose how many times data should be overwritten.
 - **Multiple Overwrite Passes:** Overwrites data using multiple passes with different secure patterns.
 - **Custom Patterns:** Includes zero fill, random data, reverse, and byte shaking methods.
 - **Partition Wiping:** Fills free space on partitions to remove traces of deleted files.
@@ -80,14 +81,15 @@ dotnet run --project ZeroTrace
 
 1. **Select Target Type:** Choose to securely delete files/folders or wipe a partition.
 2. **Add Targets:** Select or enter paths for files, folders, or partitions.
-3. **Confirm Deletion:** Review selected targets and confirm the operation.
-4. **Monitor Progress:** Monitor the progress as ZeroTrace securely erases your data.
+3. **Set Overwrite Passes:** You can now manually enter the number of overwrite passes (default is 7). More passes = slower but safer.
+4. **Confirm Deletion:** Review selected targets and confirm the operation.
+5. **Monitor Progress:** Monitor the progress as ZeroTrace securely erases your data.
 
 
 
 ### 📸 Screenshot
 
-<img width="1501" height="913" alt="image" src="https://github.com/user-attachments/assets/a1169d0a-0ded-40de-8bc2-951f63555ebf" />
+<img width="1204" height="894" alt="image" src="https://github.com/user-attachments/assets/70844b17-64c3-4e6b-8c9d-c8aaadb5ec8b" />
 
 ---
 
