@@ -4,6 +4,8 @@ namespace ZeroTrace.Helpers;
 
 public static class FileWipeUtilities
 {
+    private const string chars = "abcdefghijklmnopqrstuvwxyz";
+
     public static int GetBufferSize(long fileLength = 0)
     {
         var defaultBufferSize = 64 * 1024 * 1024;
@@ -20,6 +22,10 @@ public static class FileWipeUtilities
         return defaultBufferSize;
     }
 
+    public static string GetRandomString(RandomNumberGenerator rng, int maxLength)
+    {
+        return new string([.. Enumerable.Range(0, maxLength).Select(_ => chars[GetRandomInt(rng, 0, chars.Length)])]);
+    }
 
     public static int GetRandomInt(RandomNumberGenerator rng, int min, int max)
     {

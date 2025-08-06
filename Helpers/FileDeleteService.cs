@@ -45,7 +45,7 @@ internal static class FileDeleteService
             int method;
             do
             {
-                method = FileWipeUtilities.GetRandomInt(rng, 0, 5);
+                method = FileWipeUtilities.GetRandomInt(rng, 0, 4);
             }
             while (lastMethod == 0 && method == 0 ||
                      lastMethod == 2 && method == 2);
@@ -77,7 +77,23 @@ internal static class FileDeleteService
 
         try
         {
-            File.Delete(filePath);
+            var lastFilePath = filePath;
+
+            var fileName = Path.GetFileName(filePath);
+            var path = Path.GetDirectoryName(filePath);
+
+            for (int i = 0; i < passes; i++)
+            {
+                var newfileExtension = "." + FileWipeUtilities.GetRandomString(rng, 3);
+
+                var newFilePath = Path.Combine(path!, Guid.NewGuid().ToString() + newfileExtension);
+
+                File.Move(lastFilePath, newFilePath);
+
+                lastFilePath = newFilePath;
+            }
+
+            File.Delete(lastFilePath);
         }
         catch (Exception)
         {
